@@ -3,3 +3,6 @@ EnvironmentFile={{ etcd_conf_dir }}/etcd.conf
 Restart=on-failure
 RestartSec=10
 
+{% if etcd_install_type == 'proxy' %}
+Type=simple
+{% endif %}
