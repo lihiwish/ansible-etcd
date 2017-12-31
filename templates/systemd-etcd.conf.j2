@@ -1,11 +1,12 @@
 ETCD_NAME="{{ inventory_hostname }}"
 ETCD_INITIAL_CLUSTER="{% for host in groups[etcd_cluster_group] %}{{ host }}={{ etcd_access_method }}://{{ hostvars[host]['etcd_local_address'] | default(hostvars[host]['ansible_host']) }}:{{ etcd_peer_port }}{% if not loop.last %},{% endif %}{% endfor %}"
 ETCD_DATA_DIR="{{ etcd_data_dir }}"
+ETCD_ADVERTISE_CLIENT_URLS="{% for port in etcd_client_ports %}{{ etcd_access_method }}://{{ etcd_local_address }}:{{ port }}{% if not loop.last %},{% endif %}{% endfor %}"
 {% if etcd_install_type == 'proxy' %}
 ETCD_PROXY="on"
 ETCD_ENDPOINTS="{% for host in groups[etcd_cluster_group] %}{{ etcd_access_method }}://{{ hostvars[host]['etcd_local_address'] | default(hostvars[host]['ansible_host']) }}:{{ etcd_peer_port }}{% if not loop.last %},{% endif %}{% endfor %}"
 ETCD_LISTEN_CLIENT_URLS="{% for port in etcd_client_ports %}{{ etcd_access_method }}://127.0.0.1:{{ port }}{% if etcd_local_address != '127.0.0.1' %},{{ etcd_access_method }}://{{ etcd_local_address }}:{{ port }}{% endif %}{% if not loop.last %},{% endif %}{% endfor %}"
-DAEMON_ARGS="grpc-proxy start --listen-addr=%ETCD_LISTEN_CLIENT_URLS --endpoints=$ETCD_ENDPOINTS"
+DAEMON_ARGS="grpc-proxy start --listen-addr=$ETCD_ADVERTISE_CLIENT_URLS --endpoints=$ETCD_ENDPOINTS"
 {% elif etcd_install_type == 'server' %}
 {% if etcd_access_method == 'https' %}
 ETCD_CERT_FILE="{{ etcd_ssl_cert }}"
@@ -18,5 +19,4 @@ ETCD_INITIAL_CLUSTER_TOKEN="{{ etcd_initial_token }}"
 ETCD_INITIAL_ADVERTISE_PEER_URLS="{{ etcd_access_method }}://{{ etcd_local_address }}:{{ etcd_peer_port }}"
 ETCD_LISTEN_PEER_URLS="{{ etcd_access_method }}://{{ etcd_local_address }}:{{ etcd_peer_port }}"
 ETCD_LISTEN_CLIENT_URLS="{% for port in etcd_client_ports %}{{ etcd_access_method }}://127.0.0.1:{{ port }}{% if etcd_local_address != '127.0.0.1' %},{{ etcd_access_method }}://{{ etcd_local_address }}:{{ port }}{% endif %}{% if not loop.last %},{% endif %}{% endfor %}"
-ETCD_ADVERTISE_CLIENT_URLS="{% for port in etcd_client_ports %}{{ etcd_access_method }}://{{ etcd_local_address }}:{{ port }}{% if not loop.last %},{% endif %}{% endfor %}"
 {% endif %}
